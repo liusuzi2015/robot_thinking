@@ -1,6 +1,9 @@
 
 import kNN
 import unittest
+import matplotlib
+import matplotlib.pyplot as plt
+from numpy import *
 
 group, labels = kNN.createDataSet()
 
@@ -10,6 +13,21 @@ print(labels)
 result = kNN.classify0([0,0], group, labels, 3)
 
 print(result)
+
+datingDataMat, datingLabels = kNN.file2matrix('datingTestSet.txt')
+
+print(datingDataMat)
+
+print(datingLabels)
+
+fig = plt.figure()
+
+ax = fig.add_subplot(111)
+
+ax.scatter(datingDataMat[:,0], datingDataMat[:,1],
+           15.0*array(datingLabels), 15.0*array(datingLabels))
+
+plt.show()
 
 class TestkNN(unittest.TestCase):
     def setUp(self):
