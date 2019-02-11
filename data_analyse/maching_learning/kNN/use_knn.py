@@ -14,7 +14,7 @@ result = kNN.classify0([0,0], group, labels, 3)
 
 print(result)
 
-datingDataMat, datingLabels = kNN.file2matrix('datingTestSet.txt')
+datingDataMat, datingLabels = kNN.file2matrix('./data_analyse/maching_learning/kNN/datingTestSet.txt')
 
 print(datingDataMat)
 

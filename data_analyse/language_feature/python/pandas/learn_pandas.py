@@ -16,7 +16,7 @@ df = pd.read_csv("titanic.csv", header=0)
 # print(df.head())
 
 # # Describe features
-# print(df.describe())
+print(df.describe())
 
 # Histograms
 df["age"].hist()
