@@ -106,54 +106,64 @@ async function onConversation() {
   try {
     let lastText = ''
     const fetchChatAPIOnce = async () => {
-      await fetchChatAPIProcess<Chat.ConversationResponse>({
-        prompt: message,
-        options,
-        signal: controller.signal,
-        onDownloadProgress: ({ event }) => {
-          const xhr = event.target
-          const { responseText } = xhr
-          // Always process the final line
-          const lastIndex = responseText.lastIndexOf('\n', responseText.length - 2)
-          let chunk = responseText
-          if (lastIndex !== -1)
-            chunk = responseText.substring(lastIndex)
-          try {
-            const data = JSON.parse(chunk)
-            updateChat(
-              +uuid,
-              dataSources.value.length - 1,
-              {
-                dateTime: new Date().toLocaleString(),
-                text: lastText + (data.text ?? ''),
-                inversion: false,
-                error: false,
-                loading: true,
-                conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
-                requestOptions: { prompt: message, options: { ...options } },
-              },
-            )
+      try {
+        await fetchChatAPIProcess<Chat.ConversationResponse>({
+          prompt: message,
+          options,
+          signal: controller.signal,
+          onDownloadProgress: ({ event }) => {
+            const xhr = event.target
+            const { responseText } = xhr
+            console.log('Response Text:', responseText); // 添加这行代码以打印响应内容 
+            // Always process the final line
+            const lastIndex = responseText.lastIndexOf('\n', responseText.length - 2)
+            let chunk = responseText
+            if (lastIndex !== -1)
+              chunk = responseText.substring(lastIndex)
+            try {
+              const data = JSON.parse(chunk)
+              updateChat(
+                +uuid,
+                dataSources.value.length - 1,
+                {
+                  dateTime: new Date().toLocaleString(),
+                  text: lastText + (data.text ?? ''),
+                  inversion: false,
+                  error: false,
+                  loading: true,
+                  conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
+                  requestOptions: { prompt: message, options: { ...options } },
+                },
+              )
 
-            if (openLongReply && data.detail.choices[0].finish_reason === 'length') {
-              options.parentMessageId = data.id
-              lastText = data.text
-              message = ''
-              return fetchChatAPIOnce()
+              if (openLongReply && data.detail.choices[0].finish_reason === 'length') {
+                options.parentMessageId = data.id
+                lastText = data.text
+                message = ''
+                return fetchChatAPIOnce()
+              }
+
+              scrollToBottomIfAtBottom()
+            } catch (error) {
+              console.error('JSON解析失败:', error);
             }
+          },
+        })
 
-            scrollToBottomIfAtBottom()
-          }
-          catch (error) {
-            //
-          }
-        },
-      })
-      updateChatSome(+uuid, dataSources.value.length - 1, { loading: false })
-    }
+        updateChatSome(uuid, dataSources.value.length - 1, { loading: false });
+      } catch (error) {
+        console.error('fetchChatAPIOnce()发生异常:', error);
+        // 异常处理逻辑
+      }
+  }
 
     await fetchChatAPIOnce()
   }
   catch (error: any) {
+    console.error('error: any:', error);
+    console.log('Error name:', error.name);
+    console.log('Error constructor:', error.constructor);
+    console.log('Error stack:', error.stack);
     const errorMessage = error?.message ?? t('common.wrong')
 
     if (error.message === 'canceled') {
